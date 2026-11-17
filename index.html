@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wild Wonderlands Quiz</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; font-family: "Pretendard", "Noto Sans KR", "Malgun Gothic", sans-serif; color: #2b2b2b;
+         background: linear-gradient(135deg, #FFD60A 0%, #FFB703 45%, #FB8500 100%); }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 32px 20px 48px; }
+  h1 { font-size: 34px; font-weight: 800; margin: 0 0 6px; color: #fff; text-shadow: 3px 3px 0 #E85D04; letter-spacing: 1px; }
+  .sub { color: #7A2E00; margin: 0 0 22px; font-size: 16px; font-weight: 600; }
+  .bar { height: 14px; background: rgba(255,255,255,.6); border-radius: 7px; overflow: hidden; margin-bottom: 20px; border: 2px solid #fff; }
+  .bar span { display: block; height: 100%; background: linear-gradient(90deg, #06D6A0, #118AB2); width: 0; transition: width .4s; }
+  .card { background: #fff; border-radius: 22px; padding: 28px 24px; box-shadow: 0 10px 0 #E85D04, 0 14px 30px rgba(0,0,0,.18); }
+  .num { display: inline-block; font-size: 14px; font-weight: 700; color: #fff; background: #EF476F; padding: 5px 14px; border-radius: 20px; margin-bottom: 14px; }
+  .q { font-size: 22px; line-height: 1.5; margin: 0 0 20px; font-weight: 700; color: #073B4C; }
+  .opt { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; font-size: 18px; padding: 12px 14px; margin-bottom: 12px;
+         border: 3px solid #FFE8A3; border-radius: 14px; background: #FFFBEA; color: #2b2b2b; cursor: pointer; font-family: inherit; transition: transform .12s, border-color .12s; }
+  .opt:hover:not(:disabled) { transform: translateY(-2px); border-color: #FFB703; }
+  .opt .lt { flex: none; width: 34px; height: 34px; border-radius: 50%; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+  .opt:nth-of-type(1) .lt { background: #EF476F; } .opt:nth-of-type(2) .lt { background: #118AB2; }
+  .opt:nth-of-type(3) .lt { background: #06D6A0; } .opt:nth-of-type(4) .lt { background: #8338EC; }
+  .opt.right { background: #D8F8EC; border-color: #06D6A0; }
+  .opt.wrong { background: #FFE0E6; border-color: #EF476F; animation: shake .35s; }
+  .opt:disabled { cursor: default; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+  @keyframes pop { 0%{transform:scale(.8);opacity:0} 100%{transform:scale(1);opacity:1} }
+  .fb { margin-top: 8px; padding: 14px 16px; border-radius: 14px; background: #E8F7FF; border-left: 6px solid #118AB2; font-size: 16px; line-height: 1.6; display: none; animation: pop .25s; }
+  .fb.good { background: #E3FBF2; border-left-color: #06D6A0; }
+  .fb b { display: block; margin-bottom: 4px; font-size: 18px; }
+  .next { margin-top: 18px; font-size: 18px; font-weight: 700; padding: 13px 26px; border: none; border-radius: 14px; background: #118AB2; color: #fff; cursor: pointer;
+          display: none; font-family: inherit; box-shadow: 0 5px 0 #073B4C; }
+  .next:active { transform: translateY(3px); box-shadow: 0 2px 0 #073B4C; }
+  .result { text-align: center; }
+  .score { font-size: 64px; font-weight: 800; color: #EF476F; margin: 6px 0; }
+  .result .sub { color: #073B4C; }
+  .confetti { position: fixed; top: -12px; width: 10px; height: 14px; border-radius: 2px; animation: fall linear forwards; pointer-events: none; }
+  @keyframes fall { to { transform: translateY(105vh) rotate(720deg); } }
+  .live { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+  .live span { background: #fff; color: #073B4C; font-weight: 700; font-size: 16px; padding: 7px 16px; border-radius: 20px; box-shadow: 0 3px 0 #E85D04; }
+  .live b { color: #EF476F; }
+  .points { font-size: 30px; font-weight: 800; color: #118AB2; margin: 0 0 6px; }
+  .donut { display: block; margin: 8px auto 4px; }
+  .marks { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 14px 0 6px; }
+  .mk { display: flex; flex-direction: column; align-items: center; gap: 2px; font-weight: 800; font-size: 14px; }
+  .mk i { font-style: normal; width: 38px; height: 38px; border-radius: 50%; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .mk.o i { background: #06D6A0; } .mk.x i { background: #EF476F; }
+  .mk span { font-size: 20px; }
+  .mk.o { color: #06A77D; } .mk.x { color: #EF476F; }
+  .stamp { font-size: 14px; color: #6b6b6b; margin: 4px 0 0; }
+  .capture { font-size: 15px; color: #7A2E00; font-weight: 700; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Wild Wonderlands Quiz</h1>
+  <p class="sub">Lesson 7 · Torres del Paine & Kruger National Park</p>
+  <div class="live" id="live"></div>
+  <div class="bar"><span id="bar"></span></div>
+  <div class="card" id="card"></div>
+</div>
+<script>
+const quiz = [
+  { q: "What do national parks keep safe?",
+    o: ["Many animal and plant species", "Big cities and buildings", "Old cars and roads", "Hotels and shops"], a: 0,
+    e: "국립공원은 많은 동물과 식물 종을 안전하게 지켜 줍니다. (They keep many animal and plant species safe.)" },
+  { q: "Torres del Paine National Park is in ________.",
+    o: ["South Africa", "Chile", "Korea", "Greece"], a: 1,
+    e: "토레스 델 파이네 국립공원은 남아메리카의 칠레에 있습니다." },
+  { q: "Why is Torres del Paine famous?",
+    o: ["For its many lions", "For its hot desert", "For its dynamic weather", "For its tall buildings"], a: 2,
+    e: "하루에 맑음, 비, 눈이 모두 올 수 있을 만큼 날씨가 변화무쌍해서 유명합니다." },
+  { q: "What is Grey Glacier?",
+    o: ["A big lake in Africa", "One of the most wonderful glaciers in Chile", "A hotel in the park", "A kind of baobab tree"], a: 1,
+    e: "그레이 빙하는 칠레에서 가장 멋진 빙하 중 하나입니다." },
+  { q: "What should visitors do to enter Torres del Paine?",
+    o: ["They should book.", "They should bring plastic bags.", "They should hunt animals.", "They should fly a drone."], a: 0,
+    e: "방문객 수를 제한하기 때문에 공원에 들어가려면 예약(book)을 해야 합니다." },
+  { q: "Which is NOT an effort of Torres del Paine?",
+    o: ["It controls the number of visitors.", "It makes visitors take their trash with them.", "Its hotels only use eco-friendly products.", "It opens all the trails to visitors."], a: 3,
+    e: "산책로는 일부만(only some park trails) 개방됩니다. 모든 길을 여는 것이 아닙니다." },
+  { q: "Which animal is NOT one of the Big Five?",
+    o: ["Lion", "Giraffe", "Rhino", "Buffalo"], a: 1,
+    e: "빅 파이브는 lion, leopard, elephant, rhino, buffalo입니다. 기린(giraffe)은 들어가지 않습니다." },
+  { q: "Which Big Five animal often rests in trees and is the hardest to see?",
+    o: ["Elephant", "Buffalo", "Leopard", "Rhino"], a: 2,
+    e: "표범(leopard)은 나무 위에서 쉬는 일이 많아 다섯 동물 중 가장 보기 어렵습니다." },
+  { q: "Why are the Big Five in danger?",
+    o: ["Because of too much hunting", "Because of cold weather", "Because of too many trees", "Because of too many volunteers"], a: 0,
+    e: "지나친 사냥(too much hunting) 때문에 빅 파이브가 위험에 처해 있습니다." },
+  { q: "What do volunteers do in Kruger National Park?",
+    o: ["They sell animal horns.", "They remove animal traps.", "They build new hotels.", "They feed lions every day."], a: 1,
+    e: "자원봉사자들은 불법 사냥의 흔적을 감시하고 동물 덫(animal traps)을 제거합니다. 공원에서는 드론과 헬리콥터로도 사냥을 감시합니다." }
+];
+
+let i = 0, score = 0, results = [];
+const card = document.getElementById("card");
+const bar = document.getElementById("bar");
+
+function updateLive(done) {
+  document.getElementById("live").innerHTML =
+    '<span>맞힌 문제 <b>' + score + '</b> / ' + done + '</span>' +
+    '<span>점수 <b>' + score * 10 + '</b>점</span>';
+}
+
+function show() {
+  updateLive(i);
+  bar.style.width = (i / quiz.length * 100) + "%";
+  const item = quiz[i];
+  card.innerHTML =
+    '<div class="num">Question ' + (i + 1) + ' / ' + quiz.length + '</div>' +
+    '<p class="q">' + item.q + '</p>' +
+    item.o.map((t, k) => '<button class="opt" data-k="' + k + '"><span class="lt">' + String.fromCharCode(65 + k) + '</span>' + t + '</button>').join("") +
+    '<div class="fb" id="fb"></div>' +
+    '<button class="next" id="next">' + (i === quiz.length - 1 ? "See my score" : "Next") + '</button>';
+  card.querySelectorAll(".opt").forEach(b => b.addEventListener("click", () => pick(+b.dataset.k)));
+  document.getElementById("next").addEventListener("click", () => { i++; i < quiz.length ? show() : finish(); });
+}
+
+function pick(k) {
+  const item = quiz[i];
+  results[i] = (k === item.a);
+  const btns = card.querySelectorAll(".opt");
+  btns.forEach(b => b.disabled = true);
+  btns[item.a].classList.add("right");
+  const fb = document.getElementById("fb");
+  if (k === item.a) { score++; fb.classList.add("good"); fb.innerHTML = "<b>Great job!</b>" + item.e; }
+  else { btns[k].classList.add("wrong"); fb.innerHTML = "<b>Not quite. 정답은 " + String.fromCharCode(65 + item.a) + "입니다.</b>" + item.e; }
+  updateLive(i + 1);
+  fb.style.display = "block";
+  document.getElementById("next").style.display = "inline-block";
+}
+
+function donut(correct, total) {
+  const r = 70, c = 2 * Math.PI * r, part = c * correct / total;
+  return '<svg class="donut" width="200" height="200" viewBox="0 0 200 200">' +
+    '<circle cx="100" cy="100" r="' + r + '" fill="none" stroke="#FFD1DA" stroke-width="26"/>' +
+    (correct > 0 ? '<circle cx="100" cy="100" r="' + r + '" fill="none" stroke="#06D6A0" stroke-width="26" stroke-dasharray="' + part + ' ' + c + '" transform="rotate(-90 100 100)"' + (correct === total ? '' : ' stroke-linecap="butt"') + '/>' : '') +
+    '<text x="100" y="98" text-anchor="middle" font-size="40" font-weight="800" fill="#EF476F">' + correct * 10 + '점</text>' +
+    '<text x="100" y="126" text-anchor="middle" font-size="17" font-weight="700" fill="#073B4C">' + correct + ' / ' + total + ' 정답</text>' +
+    '</svg>';
+}
+
+function finish() {
+  bar.style.width = "100%";
+  const circled = ["①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩"];
+  const marks = quiz.map((_, n) =>
+    '<div class="mk ' + (results[n] ? 'o' : 'x') + '"><span>' + circled[n] + '</span><i>' + (results[n] ? 'O' : 'X') + '</i></div>').join("");
+  const now = new Date();
+  const stamp = now.getFullYear() + "." + (now.getMonth() + 1) + "." + now.getDate() + " " +
+    String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
+  card.innerHTML =
+    '<div class="result"><p class="q">You finished the quiz!</p>' +
+    donut(score, quiz.length) +
+    '<p class="points">10문제 중 ' + score + '문제 정답 · ' + score * 10 + '점</p>' +
+    '<div class="marks">' + marks + '</div>' +
+    '<p class="stamp">' + stamp + '</p>' +
+    '<p class="sub">' + (score >= 8 ? "Excellent! You are a national park expert." : score >= 5 ? "Good job! Read the text once more." : "Let\'s read the text again together.") + '</p>' +
+    '<p class="capture">이 화면을 캡처해서 선생님께 보내 주세요.</p>' +
+    '<button class="next" style="display:inline-block" id="again">Try again</button></div>';
+  confetti();
+  document.getElementById("again").addEventListener("click", () => { i = 0; score = 0; results = []; show(); });
+}
+
+function confetti() {
+  const colors = ["#EF476F", "#06D6A0", "#118AB2", "#8338EC", "#FFD60A", "#fff"];
+  for (let n = 0; n < 80; n++) {
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = Math.random() * 100 + "vw";
+    c.style.background = colors[n % colors.length];
+    c.style.animationDuration = (2 + Math.random() * 2) + "s";
+    c.style.animationDelay = Math.random() * .6 + "s";
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 5000);
+  }
+}
+
+show();
+</script>
+</body>
+</html>
